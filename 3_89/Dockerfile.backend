@@ -1,0 +1,23 @@
+# ---------- Stage 1: build ----------
+FROM golang:1.16-alpine AS build-stage
+
+WORKDIR /usr/src/app
+
+COPY code/example-backend .
+
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o server
+
+# ---------- Stage 2: run ----------
+FROM scratch
+
+WORKDIR /usr/src/app
+
+COPY --from=build-stage /usr/src/app/server .
+
+ENV REQUEST_ORIGIN=http://localhost:5001
+
+USER 1000
+
+EXPOSE 8080
+
+CMD ["./server"]
